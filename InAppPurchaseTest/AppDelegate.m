@@ -7,9 +7,18 @@
 //
 
 #import "AppDelegate.h"
+#import "ViewController.h"
+#import "RMStore.h"
+#import "RMStoreTransactionReceiptVerifier.h"
+#import "RMStoreAppReceiptVerifier.h"
+#import "RMStoreKeychainPersistence.h"
+
 
 @interface AppDelegate ()
-
+{
+    id<RMStoreReceiptVerifier> _receiptVerifier;
+    RMStoreKeychainPersistence *_persistence;
+}
 @end
 
 @implementation AppDelegate
@@ -17,8 +26,27 @@
 
 - (BOOL)application:(UIApplication *)application didFinishLaunchingWithOptions:(NSDictionary *)launchOptions {
     // Override point for customization after application launch.
+    [self configureStore];
+    
+    ViewController *vc = [[ViewController alloc] init];
+    vc.title = @"商品列表";
+    UINavigationController *nc = [[UINavigationController alloc] initWithRootViewController:vc];
+    self.window.rootViewController = nc;
+    
+    
     return YES;
 }
+
+- (void)configureStore
+{
+    const BOOL iOS7OrHigher = floor(NSFoundationVersionNumber) > NSFoundationVersionNumber_iOS_6_1;
+    _receiptVerifier = iOS7OrHigher ? [[RMStoreAppReceiptVerifier alloc] init] :[[RMStoreTransactionReceiptVerifier alloc] init];
+    [RMStore defaultStore].receiptVerifier = _receiptVerifier;
+    
+    _persistence = [[RMStoreKeychainPersistence alloc] init];
+    [RMStore defaultStore].transactionPersistor = _persistence;
+}
+
 
 
 - (void)applicationWillResignActive:(UIApplication *)application {
